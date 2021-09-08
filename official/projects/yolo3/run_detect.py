@@ -6,9 +6,9 @@ from absl import app
 
 # pylint: disable=unused-import
 from official.common import flags as tfm_flags
-from official.projects.basnet.configs import yolo3 as yolo3_cfg
-from official.projects.basnet.modeling import yolo3_model
-from official.projects.basnet.tasks import yolo3 as yolo3_task
+from official.projects.yolo3.configs import yolo3 as yolo3_cfg
+from official.projects.yolo3.modeling import yolo3_model
+from official.projects.yolo3.tasks import yolo3 as yolo3_task
 from official.vision.beta import train
 
 
