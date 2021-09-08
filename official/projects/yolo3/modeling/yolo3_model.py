@@ -3,7 +3,7 @@ from typing import Any, Mapping
 # Import libraries
 import tensorflow as tf
 
-from official.vision.beta.projects.example import example_config as example_cfg
+from official.projects.yolo3.configs import yolo3_cfg 
 from official.vision.beta.modeling.backbones import factory
 
 from official.projects.yolo3.modeling.nn_block import *
@@ -17,21 +17,23 @@ from official.projects.yolo3.modeling.head import *
 class YOLOv3Model(tf.keras.Model):
     def __init__(
         self, 
+        n_classes, 
+        anchors, 
         backbone, 
         heads, 
+        input_specs, 
         **kwargs):
-
         """
         backbone: Darkent53, outputs: route0, route1, x
-        decoder: YoloConv, outputs: detect0, detect1, detect2
-        head: detection, outputs: concatp[d0, d1, d2], then build_bbox
+        head: YoloConv, outputs: detect0, detect1, detect2
         """
-        
         super().__init__(**kwargs)
         self._config_dict = {
             'backbone': backbone, 
             'heads': heads, 
         }
+
+        # inputs = self.backbone()
 
     def call(self, inputs, training=None):
         features = self.backbone(inputs)
@@ -56,7 +58,7 @@ class YOLOv3Model(tf.keras.Model):
 # call at task 
 def build_yolo3_model(
     input_specs: tf.keras.layers.InputSpec,
-    model_config: example_cfg.ExampleModel,
+    model_config: yolo3_cfg.YOLOv3Model,
     **kwargs): # -> tf.keras.Model:
     
     """Builds and returns the example model.
@@ -75,7 +77,9 @@ def build_yolo3_model(
         A tf.keras.Model object.
     """
     return YOLOv3Model(
-        num_classes=model_config.num_classes, input_specs=input_specs, **kwargs)
+        backbone=model_config.backbone, 
+        input_specs=input_specs, 
+        **kwargs)
 
 
 if __name__ == '__main__':

@@ -11,8 +11,8 @@ from official.core import input_reader
 from official.core import task_factory
 
 from official.projects.yolo3.configs import yolo3_cfg as exp_cfg
-from official.projects.yolo3.modeling import yolo3_model, backbone, head
-from official.projects.yolo3.loss import yolo3_losses
+from official.projects.yolo3.modeling import yolo3_model
+from official.projects.yolo3.loss import yolo3_loss
 # from official.projects.yolo3.ops import metrics as yolo3_metrics
 
 from official.vision.beta.dataloaders import segmentation_input

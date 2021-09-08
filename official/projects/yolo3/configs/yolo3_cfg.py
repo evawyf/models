@@ -31,7 +31,7 @@ class DataConfig(cfg.DataConfig):
 @dataclasses.dataclass
 class YOLOv3Model(hyperparams.Config):
     """The model config. Used by build_example_model function."""
-    num_classes: int = 0
+    n_classes: int = 0
     input_size: List[int] = dataclasses.field(default_factory=list)
     use_bias: bool = False
     # common
@@ -58,15 +58,15 @@ class YOLOv3Task(cfg.TaskConfig):
     # evaluation: Evaluation = Evaluation()
 
 
-@exp_factory.register_config_factory('tf_vision_example_experiment')
-def tf_vision_example_experiment(): # -> cfg.ExperimentConfig:
+@exp_factory.register_config_factory('yolo3_experiment')
+def yolo3_experiment(): # -> cfg.ExperimentConfig:
     """Definition of a full example experiment."""
     train_batch_size = 256
     eval_batch_size = 256
     steps_per_epoch = 10
     config = cfg.ExperimentConfig(
         task=YOLOv3Task(
-            model=YOLOv3Model(num_classes=10, input_size=[128, 128, 3]),
+            model=YOLOv3Model(num_classes=80, input_size=[128, 128, 3]),
             losses=Losses(l2_weight_decay=1e-4),
             train_data=DataConfig(
                 input_path='/path/to/train*',
@@ -85,7 +85,7 @@ def tf_vision_example_experiment(): # -> cfg.ExperimentConfig:
             validation_interval=steps_per_epoch,
             optimizer_config=optimization.OptimizationConfig({
                 'optimizer': {
-                    'type': 'sgd',
+                    'type': 'adam',
                     'sgd': {
                         'momentum': 0.9
                     }
