@@ -5,6 +5,7 @@ from official.projects.yolo3.modeling.nn_block import *
 """
 Part 2: Prediction
 """
+ANCHORS = [(10, 13), (16, 30), (33, 23), (30, 61), (62, 45), (59, 119), (116, 90), (156, 198), (373, 326)]
 
 @tf.keras.utils.register_keras_serializable(package='Vision')
 class SkipConn(tf.keras.layers.Layer):
@@ -79,7 +80,8 @@ class YoloConvBlock(tf.keras.layers.Layer):
 
 @tf.keras.utils.register_keras_serializable(package='Vision')
 class DetectBlock(tf.keras.layers.Layer):
-    def __init__(self, filters, n_classes, anchors, idx, is_skip):
+    def __init__(self, filters, n_classes, idx, is_skip, anchors=ANCHORS):
+        """ skip_conn + yolo_conv + detect_conv """
         super().__init__()
 
         self._config_dict = {
@@ -113,7 +115,7 @@ class DetectBlock(tf.keras.layers.Layer):
         return self._config_dict
 
 
-DECODER_SPECS = [
+HEAD_SPECS = [
     # skip / conv filters, detect anchors idx / is skip_conn
     (512, 2, False), 
     (256, 1, True),
@@ -126,7 +128,7 @@ class Yolo3Head(tf.keras.layers.Layer):
         self, 
         n_classes, 
         anchors, 
-        decoder_specs=DECODER_SPECS, 
+        head_specs=HEAD_SPECS, 
         **kwargs):
 
         super().__init__(**kwargs)
@@ -135,16 +137,18 @@ class Yolo3Head(tf.keras.layers.Layer):
         self._config_dict = {
             'n_classes': n_classes, 
             'anchors': anchors,
-            'decoder_specs': decoder_specs, 
+            'head_specs': head_specs, 
         }
         
-        for (filters, idx, is_skip) in decoder_specs:
+        for (filters, idx, is_skip) in head_specs:
             detect_kwargs = {
                 'filters': filters, 
                 'idx': idx, 
                 'is_skip': is_skip
             }
-            self._blocks.append( DetectBlock({**detect_kwargs, **self._config_dict}) )
+            self._blocks.append( 
+                DetectBlock({**detect_kwargs, **self._config_dict}) 
+            )
         
     def call(self, features, training=False):
         # route0, route1, x 
@@ -179,7 +183,7 @@ class Yolo3Head(tf.keras.layers.Layer):
 #         n_classes,
 #         anchors, 
 #         decoder_specs=DECODER_SPECS, 
-#         **kwargs):
+#         kwargs):
 
 #         self._config_darkent = {
 #             'input_specs': input_specs, 

@@ -3,7 +3,8 @@ from typing import Any, Mapping
 # Import libraries
 import tensorflow as tf
 
-from official.projects.yolo3.configs import yolo3_cfg 
+from official.projects.yolo3.configs import yolo3_cfg
+from official.vision.beta.modeling import backbones 
 from official.vision.beta.modeling.backbones import factory
 
 from official.projects.yolo3.modeling.nn_block import *
@@ -17,11 +18,9 @@ from official.projects.yolo3.modeling.head import *
 class YOLOv3Model(tf.keras.Model):
     def __init__(
         self, 
-        n_classes, 
-        anchors, 
-        backbone, 
-        heads, 
-        input_specs, 
+        backbone : tf.keras.Model, 
+        heads: tf.keras.Model, 
+        input_specs: tf.keras.layers.InputSpec,
         **kwargs):
         """
         backbone: Darkent53, outputs: route0, route1, x
@@ -33,11 +32,11 @@ class YOLOv3Model(tf.keras.Model):
             'heads': heads, 
         }
 
-        # inputs = self.backbone()
+        inputs = self.backbone()
 
     def call(self, inputs, training=None):
         features = self.backbone(inputs)
-        detects = self.decoder(features)
+        detects = self.head(features)
         return detects
 
     @property
@@ -76,21 +75,32 @@ def build_yolo3_model(
     Returns:
         A tf.keras.Model object.
     """
+
+    backbone = DarkNet53(
+        input_specs, 
+    )
+
+    head = Yolo3Head(
+        n_classes=model_config.n_classes,
+        anchors=model_config.anchors, 
+    )
+
     return YOLOv3Model(
-        backbone=model_config.backbone, 
+        backbone=backbone, 
+        head=head, 
         input_specs=input_specs, 
         **kwargs)
 
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
 
-    _ANCHORS = [(10, 13), (16, 30), (33, 23), (30, 61), (62, 45), (59, 119), (116, 90), (156, 198), (373, 326)]
-    model = YOLOV3(n_classes=1, anchors=_ANCHORS)
-    model.build(input_shape=(None, 608, 608, 3))
+#     _ANCHORS = [(10, 13), (16, 30), (33, 23), (30, 61), (62, 45), (59, 119), (116, 90), (156, 198), (373, 326)]
+#     model = YOLOV3(n_classes=1, anchors=_ANCHORS)
+#     model.build(input_shape=(None, 608, 608, 3))
 
-    physical_devices = tf.config.experimental.list_physical_devices('GPU')
-    for physical_device in physical_devices:
-        tf.config.experimental.set_memory_growth(physical_device, True)
+#     physical_devices = tf.config.experimental.list_physical_devices('GPU')
+#     for physical_device in physical_devices:
+#         tf.config.experimental.set_memory_growth(physical_device, True)
 
-    for i, var in enumerate(model.variables):
-        print(i, var.name)
+#     for i, var in enumerate(model.variables):
+#         print(i, var.name)

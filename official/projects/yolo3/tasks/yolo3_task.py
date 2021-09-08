@@ -18,7 +18,7 @@ from official.projects.yolo3.loss import yolo3_loss
 from official.vision.beta.dataloaders import segmentation_input
 
 
-@task_factory.register_task_cls(exp_cfg.ExampleTask)
+@task_factory.register_task_cls(exp_cfg.YOLOv3Task)
 class YOLOv3Task(base_task.Task):
     """Class of an example task.
     A task is a subclass of base_task.Task that defines model, input, loss, metric
@@ -27,49 +27,19 @@ class YOLOv3Task(base_task.Task):
 
     def build_model(self): # -> tf.keras.Model:
         """Builds a model."""
-        input_specs = tf.keras.layers.InputSpec(shape=[None] +
-                                                self.task_config.model.input_size)
+        input_specs = tf.keras.layers.InputSpec(
+            shape=[None] + self.task_config.model.input_size)
 
         model = yolo3_model.build_yolo3_model(
             input_specs=input_specs, model_config=self.task_config.model)
         return model
 
-    # def build_inputs(
-    #     self,
-    #     params: exp_cfg.ExampleDataConfig,
-    #     input_context: Optional[tf.distribute.InputContext] = None
-    #     ): # -> tf.data.Dataset:
-    #     """Builds input.
-    #     The input from this function is a tf.data.Dataset that has gone through
-    #     pre-processing steps, such as augmentation, batching, shuffuling, etc.
-    #     Args:
-    #     params: The experiment config.
-    #     input_context: An optional InputContext used by input reader.
-    #     Returns:
-    #     A tf.data.Dataset object.
-    #     """
 
-    #     num_classes = self.task_config.model.num_classes
-    #     input_size = self.task_config.model.input_size
-    #     decoder = example_input.Decoder()
-
-    #     parser = example_input.Parser(
-    #         output_size=input_size[:2], num_classes=num_classes)
-
-    #     reader = input_reader_factory.input_reader_generator(
-    #         params,
-    #         dataset_fn=dataset_fn.pick_dataset_fn(params.file_type),
-    #         decoder_fn=decoder.decode,
-    #         parser_fn=parser.parse_fn(params.is_training))
-
-    #     dataset = reader.read(input_context=input_context)
-
-    #     return dataset
-
-    def build_inputs(self,
-                    params: exp_cfg.DataConfig,
-                    input_context: Optional[tf.distribute.InputContext] = None):
-        """Builds BASNet input."""
+    def build_inputs(
+        self,
+        params: exp_cfg.DataConfig,
+        input_context: Optional[tf.distribute.InputContext] = None):
+        """Builds YOLOv3 input."""
 
         ignore_label = self.task_config.losses.ignore_label
 
